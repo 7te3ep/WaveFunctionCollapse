@@ -7,7 +7,7 @@ grass.src = `./assets/Ground/Grass.png`
 let cliff = new Image()
 cliff.src = `./assets/Ground/Cliff.png`
 
-let g = {cell:10,map:[],collapse:true,genSpeed:1}
+let g = {cell:10,map:[],collapse:true,genSpeed:10}
 let rules = [
     {cant:[2],id:"grass",color:"green",index:0},
     {cant:[3],id:"sand",color:"yellow",index:1},
@@ -21,7 +21,7 @@ function createMap(){
     for (let i = 0;i<canva.width;i+=g.cell){
         g.map.push([])
         for (let j = 0;j<canva.height;j+=g.cell){
-            g.map[i/g.cell].push({x:i,y:j,value:[0,1,2,3],collasped:false,color:"red"})
+            g.map[i/g.cell].push({x:i,y:j,value:[0,1,2],collasped:false,color:"red"})
         }
     }
     g.map.forEach((xCell)=>{
@@ -103,7 +103,7 @@ function animate(){
     if (i <= ( (canva.width/g.cell)**2 )-1){
         for (let h = 0;h< g.genSpeed;h++){
             i++
-            //collapseCell(i)
+            collapseCell(i)
         }
     }
     setTimeout(() => {
