@@ -1,122 +1,110 @@
+// IMPORTS
 import {canva,ctx} from "./modules/canva.js"
-import { getRandomInt } from "./modules/randomInt.js"
+import { drawGrid ,createMap } from "./modules/drawGrid.js"
+import { randInt } from "./modules/randomInt.js"
+import { rLen,randArr } from "./modules/arrayTools.js"
 
-let grass = new Image()
-grass.src = `./assets/Ground/Grass.png`
 
-let cliff = new Image()
-cliff.src = `./assets/Ground/Cliff.png`
-
+// VARS
+// cell template {x:x,y:y,entropy:["water","sand","grass","rock"],collasped:false,layer:0}
 let g = {cell:10,map:[],collapse:true,genSpeed:10}
-let rules = [
-    {cant:[2],id:"grass",color:"green",index:0},
-    {cant:[3],id:"sand",color:"yellow",index:1},
-    {cant:[0,3],id:"water",color:"blue",index:2},
-    {cant:[2,1],id:"stone",color:"dark",index:3}
-]
-const directions = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
-
-let pool = []
-function createMap(){
-    for (let i = 0;i<canva.width;i+=g.cell){
-        g.map.push([])
-        for (let j = 0;j<canva.height;j+=g.cell){
-            g.map[i/g.cell].push({x:i,y:j,value:[0,1,2],collasped:false,color:"red"})
-        }
-    }
-    g.map.forEach((xCell)=>{
-        xCell.forEach((cell)=>{
-            pool.push(cell)
-    })
-}) 
+let rules = {
+    "grass":{cant:["water"],id:1,color:"green"},
+    "sand":{cant:["rock"],id:2,color:"yellow"},
+    "water":{cant:["rock","grass"],id:3,color:"blue"},
+    "rock":{cant:["sand","water"],id:4,color:"black"}
 }
 
-function drawGrid(map){
-    g.map.forEach((xCell)=>{
-        xCell.forEach((item)=>{
-            if(item.collasped == true) {
-                ctx.globalAlpha = 1;
-                if (item.color == "green" ||item.value[0] == 0) ctx.drawImage(grass, 16, 0, 16, 16, item.x, item.y, g.cell, g.cell) 
-                else if (item.color == "yellow" || item.value[0] == 1) ctx.drawImage(grass, 64, 0, 16, 16, item.x, item.y, g.cell, g.cell)
-                else if (item.color == "blue" || item.value[0] == 2) ctx.drawImage(grass, 0, 0, 16, 16, item.x, item.y, g.cell, g.cell)
-                else if (item.color == "dark" || item.value[0] == 3) ctx.fillRect(item.x,item.y,g.cell,g.cell)
-            }else {
-                ctx.globalAlpha = 0.5;
-                item.value.forEach(element => {
-                    if (element == 0) ctx.drawImage(grass, 16, 0, 16, 16, item.x, item.y, g.cell, g.cell) 
-                    else if (element == 1) ctx.drawImage(grass, 64, 0, 16, 16, item.x, item.y, g.cell, g.cell)
-                    else if (element == 2) ctx.drawImage(grass, 0, 0, 16, 16, item.x, item.y, g.cell, g.cell)
-                    else if (item.value[0] == 3) ctx.fillRect(item.x,item.y,g.cell,g.cell)
-                });
+// TOOLS
+
+function collapse(map,ctr){
+    let pool = []
+    map.forEach((x)=>{ x.forEach((cell)=>{
+        cell.layer = undefined
+        pool.push(cell)
+    })})
+    pool = pool.filter(item => (!item.collasped));
+    pool.sort(function(a, b) {return a.entropy.length - b.entropy.length;});
+    if (pool.length == 0) return
+
+    let choice = pool[randInt(0,pool.length/10)]
+    if (ctr ==0) choice = randArr(pool)
+    choice.layer = 0
+    choice.collasped = true
+    choice.entropy = [randArr(choice.entropy)] 
+
+    let canContinu = true
+    let i = 0
+    while (canContinu == true){
+        canContinu = false
+        pool.forEach(function(item){
+            if (item.layer == i){
+                updateEntropy(item)
+                canContinu = true
             }
         })
-    })
+        i ++
+    }
 }
 
 function updateEntropy(cell){
+    let deleteValues = cantUpdate(cell)
     let neighbors = []
-    for (const [dx, dy] of directions) {
-        const x = cell.x/g.cell + dx;
-        const y = cell.y/g.cell + dy;
-        if (x >= 0 && x < canva.width/g.cell && y >= 0 && y < canva.height/g.cell) {
-            neighbors.push(g.map[x][y]);
-        }
-    }
-    let cant = rules[cell.value[0]].cant
-    if (cant.length == 0 ||neighbors.length == 0) return
+    if (g.map[cell.x/g.cell-1] != undefined && g.map[cell.x/g.cell-1][cell.y/g.cell] != undefined) neighbors.push(g.map[cell.x/g.cell-1][cell.y/g.cell])
+    if (g.map[cell.x/g.cell+1] != undefined && g.map[cell.x/g.cell+1][cell.y/g.cell] != undefined)neighbors.push(g.map[cell.x/g.cell+1][cell.y/g.cell])
+    if (g.map[cell.x/g.cell] != undefined && g.map[cell.x/g.cell][cell.y/g.cell - 1] != undefined)neighbors.push(g.map[cell.x/g.cell][cell.y/g.cell-1])
+    if (g.map[cell.x/g.cell] != undefined && g.map[cell.x/g.cell][cell.y/g.cell + 1] != undefined)neighbors.push(g.map[cell.x/g.cell][cell.y/g.cell+1])
 
-    neighbors.forEach((voisin)=>{
-        if (voisin.collasped == false ){
-            voisin.value.forEach(function(item,i){
-                cant.forEach(function(cantItem,g){
-                    if (item == cantItem){
-                        voisin.value.splice(i,1)
-                    }
-                })
-            })
+    if (g.map[cell.x/g.cell+1] != undefined && g.map[cell.x/g.cell+1][cell.y/g.cell + 1] != undefined)neighbors.push(g.map[cell.x/g.cell+1][cell.y/g.cell+1])
+    if (g.map[cell.x/g.cell+1] != undefined && g.map[cell.x/g.cell+1][cell.y/g.cell - 1] != undefined)neighbors.push(g.map[cell.x/g.cell+1][cell.y/g.cell-1])
+    if (g.map[cell.x/g.cell-1] != undefined && g.map[cell.x/g.cell-1][cell.y/g.cell + 1] != undefined)neighbors.push(g.map[cell.x/g.cell-1][cell.y/g.cell+1])
+    if (g.map[cell.x/g.cell-1] != undefined && g.map[cell.x/g.cell-1][cell.y/g.cell - 1] != undefined)neighbors.push(g.map[cell.x/g.cell-1][cell.y/g.cell-1])
+    neighbors.forEach((neighbor)=>{
+        if (!neighbor.collasped){
+            let len = neighbor.entropy.length
+            if (neighbor.layer == undefined && deleteValues.length != 0)neighbor.layer = cell.layer + 1
+
+            for (let i = 0; i < len; i++) {
+                if (deleteValues.includes(neighbor.entropy[i])){
+                    neighbor.entropy.splice(i,1)
+                    i--
+                    len--
+                }
+            }
         } 
     })
 }
 
-function collapseCell(i){
-
-    pool = pool.filter(item => (!item.collasped));
-    pool.sort(function(a, b) {
-        return a.value.length - b.value.length;
-    });
-
-    let result 
-    if (i = 1) result = pool[Math.floor(Math.random()*pool.length)]
-    else result = pool[0]
-
-    result.collasped = true
-    result.value = [result.value[getRandomInt(0,result.value.length-1)]]
-    result.color = rules[result.value[0]].color
-    updateEntropy(result)
+function cantUpdate(cell){
+    let cant = []
+    // rules[cell.entropy[0]].cant
+    cell.entropy.forEach(function(item,i){
+        cant.push([])
+        rules[item].cant.forEach((value)=>{
+            cant[i].push(value)
+        })
+    })
+    let result = cant.reduce((a, b) => a.filter(c => b.includes(c)));
+    return result
 }
 
-let i = 0
+// ANIMATE
+let ctr = 0
 function animate(){
     ctx.clearRect(0,0,canva.width,canva.height)
     drawGrid(g.map)
+    if (ctr == 0) ctr ++
+    for (let i = 0;i <g.genSpeed;i++){ collapse(g.map,ctr) }
 
-    if (i <= ( (canva.width/g.cell)**2 )-1){
-        for (let h = 0;h< g.genSpeed;h++){
-            i++
-            collapseCell(i)
-        }
-    }
+
     setTimeout(() => {
         requestAnimationFrame(animate);
-    }, 0);
+    }, 1);
 }
+
+
+// RUN
 createMap()
 animate()
 
-// function to calculate angle of a vector in radians
-window.addEventListener("keydown",(e)=>{  
-    if (e.code == "Space"){
-        collapseCell(i)
-        i ++
-    }
-})
+export {ctx,rules,g}
