@@ -7,12 +7,14 @@ import { rLen,randArr } from "./modules/arrayTools.js"
 
 // VARS
 // cell template {x:x,y:y,entropy:["water","sand","grass","rock"],collasped:false,layer:0}
-let g = {cell:10,map:[],collapse:true,genSpeed:10}
+let g = {cell:5,map:[],collapse:true,genSpeed:100}
 let rules = {
-    "grass":{cant:["water"],id:1,color:"green"},
-    "sand":{cant:["rock"],id:2,color:"yellow"},
-    "water":{cant:["rock","grass"],id:3,color:"blue"},
-    "rock":{cant:["sand","water"],id:4,color:"black"}
+    "grass":{cant:["water","deep","sand"],id:1,color:"darkgreen"},
+    "sand":{cant:["rock","deep","grass"],id:2,color:"yellow"},
+    "water":{cant:["rock","grass","land"],id:3,color:"blue"},
+    "rock":{cant:["sand","water","deep","land"],id:4,color:"black"},
+    "deep":{cant:["sand","rock","grass","land"],id:5,color:"darkblue"},
+    "land":{cant:["rock","deep","water"],id:6,color:"green"}
 }
 
 // TOOLS
@@ -94,9 +96,8 @@ function animate(){
     ctx.clearRect(0,0,canva.width,canva.height)
     drawGrid(g.map)
     if (ctr == 0) ctr ++
+
     for (let i = 0;i <g.genSpeed;i++){ collapse(g.map,ctr) }
-
-
     setTimeout(() => {
         requestAnimationFrame(animate);
     }, 1);

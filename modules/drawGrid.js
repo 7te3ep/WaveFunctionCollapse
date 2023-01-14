@@ -23,7 +23,7 @@ export function createMap(){
     for (let x = 0;x<canva.width;x+=g.cell){
         g.map.push([])
         for (let y = 0;y<canva.height;y+=g.cell){
-            g.map[x/g.cell].push({x:x,y:y,entropy:["water","sand","grass","rock"],collasped:false,layer:undefined})
+            g.map[x/g.cell].push({x:x,y:y,entropy:["water","sand","grass","rock","deep","land"],collasped:false,layer:undefined})
         }
     }
 }
