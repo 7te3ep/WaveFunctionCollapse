@@ -16,6 +16,7 @@ body {
 
 #canva {
     position:relative;
-    border: 1px solid black;
+    height: 101vh;
+    width: 101vw;
     background-color: white;
 }
