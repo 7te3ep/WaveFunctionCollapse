@@ -1,7 +1,13 @@
 const canva = document.getElementById('canva')
 const ctx = canva.getContext('2d')
 
-canva.width = 400
-canva.height = 400
+canva.width = window.innerWidth
+canva.height = window.innerHeight
+
+window.addEventListener("resize",(e)=>{
+    console.log(e)
+    canva.width = window.innerWidth
+    canva.height = window.innerHeight
+})
 
 export {canva,ctx}
