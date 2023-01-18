@@ -10,6 +10,9 @@ ctx.imageSmoothingEnabled = false;
 // VARS
 // cell template {x:x,y:y,entropy:["water","sand","forest","rock"],collasped:false,layer:0}
 let g = {cell:32,map:[],collapse:true,genSpeed:100,finished:false,prop:10}
+if (canva.width > canva.height) g.cell = canva.width/50
+else {g.cell = canva.height/50}
+
 
 let rules = {
     "forest":{cant:["church","puit","boat","water","deep","sand","shore","mount","field"],id:1,color:"darkgreen",weight:2,"img":[tree4,tree4,tree4,tree0,tree1,tree2,tree3]},
