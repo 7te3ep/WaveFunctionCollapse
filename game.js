@@ -10,8 +10,8 @@ ctx.imageSmoothingEnabled = false;
 // VARS
 // cell template {x:x,y:y,entropy:["water","sand","forest","rock"],collasped:false,layer:0}
 let g = {cell:32,map:[],collapse:true,genSpeed:100,finished:false,prop:10}
-if (canva.width > canva.height) g.cell = Math.round(canva.width/40)
-else {g.cell = Math.round(canva.height/40)}
+if (canva.width > canva.height) g.cell = Math.round(canva.width/100)
+else {g.cell = Math.round(canva.height/100)}
 
 
 let rules = {
@@ -31,7 +31,6 @@ let rules = {
 }
 //["forest","sand","water","rock","deep","land","village","shore","mount","field","boat","puit"]
 // TOOLS
-
 
 function collapse(map,ctr){
     let pool = []
